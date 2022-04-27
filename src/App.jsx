@@ -26,38 +26,50 @@ function reducer(state, action) {
   }
 }
 
-function createOption(option) {
+function createOption() {
+  const options = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: 'top',
+      },
+      title: {
+        display: true,
+        text: 'Chart.js Line Chart',
+      },
+    },
+  }
 
+  return options
 }
 
 const initState = {
-  upperBound: calculatedDate(-5).toISOString().split('T')[0],
-  lowerBound: calculatedDate(0).toISOString().split('T')[0]
-  // upperBound: '2021-01-15',
-  // lowerBound: '2021-01-01'
+  // upperBound: calculatedDate(-5).toISOString().split('T')[0],
+  // lowerBound: calculatedDate(0).toISOString().split('T')[0]
+  upperBound: '2021-01-15',
+  lowerBound: '2021-01-01'
 }
 
 function App() {
 
   const [dateState, dispatch] = useReducer(reducer, initState)
   const [data, setData] = useState([])
-  let label = []
+  const [label, setLabel] = useState([])
 
   function _fetchBtc() {
     fetchBtc()
       .then(data => {
         const btcResult = filterBtc(data, dateState.lowerBound, dateState.upperBound)
-        console.log(btcResult)
-        setData(btcResult)
+        let highPrice = []
+        let label = []
+        btcResult.forEach(item=>{
+          label.push(item.Date.split(' ')[0])
+          highPrice.push(item.High)
+        })
+        setData(highPrice)
+        setLabel(label)
       })
   }
-
-  useEffect(()=>{
-    label = []
-    data.forEach(item=>{
-      label.push(item.Date)
-    })
-  }, [data])
 
   useEffect(() => {
     _fetchBtc()
@@ -76,21 +88,20 @@ function App() {
     let newBound = e.target.value
     return dispatch({ type: 'lowerBound', payload: newBound })
   }
-
   return (
     <div className="App" >
       <div className="container" >
         <div className="date-input-container" >
           <DateInputsForm handlerSubmit={handlerSubmit} handlerLowerBound={handlerLowerBound} handlerUpperBound={handlerUpperBound}></DateInputsForm>
         </div>
-        <div className="show-date">
+        {/* <div className="show-date">
           <p>{dateState.upperBound}</p>
           <p>{dateState.lowerBound}</p>
-        </div>
+        </div> */}
         <div className="show-graph">
           {/* 2013-06-18 */}
           {/* 2013-07-18 */}
-          {/* <LineChart></LineChart> */}
+          <LineChart option={createOption()} data={data} label={label}></LineChart>
         </div>
       </div>
     </div>
